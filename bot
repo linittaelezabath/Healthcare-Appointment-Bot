@@ -1,0 +1,278 @@
+import re
+import datetime
+
+class HealthcareAppointmentBot:
+    def __init__(self):
+        self.conversation_flow = 0
+        self.appointment_data = {}
+        self.time_slots = []
+        self.waiting_doctor_confirmation = None
+
+        # Doctor list
+        self.doctors = {
+            "general physician": ["Dr. Smith", "Dr. Johnson", "Dr. Brown"],
+            "cardiologist": ["Dr. Wilson", "Dr. Davis"],
+            "dermatologist": ["Dr. Miller", "Dr. Taylor"],
+            "orthopedist": ["Dr. Anderson", "Dr. Thomas"]
+        }
+
+    def match(self, pattern, text):
+        """Helper: case-insensitive regex match"""
+        return re.search(pattern, text, flags=re.I)
+
+    def process_input(self, user_input):
+        user_input = user_input.strip()
+
+
+        # Quit
+        if self.match(r'(quit|exit|bye|goodbye)', user_input):
+            return "Thank you for using our healthcare service! Goodbye!"
+
+        # Help
+        if self.match(r'(help|what should i do|how to start|guide)', user_input):
+            return self._get_help_response()
+
+        # HANDLE DOCTOR CONFIRMATION
+        if self.waiting_doctor_confirmation:
+            if self.match(r'^(yes|y|sure|ok)$', user_input):
+                self.appointment_data['doctor'] = self.waiting_doctor_confirmation
+                self.conversation_flow = 7  # jump to date selection
+                doctor_name = self.waiting_doctor_confirmation
+                self.waiting_doctor_confirmation = None
+                return self._generate_available_dates(doctor_name)
+            elif self.match(r'^(no|n)$', user_input):
+                self.waiting_doctor_confirmation = None
+                return "Okay. You can choose another doctor or specialty. Which specialist do you need?"
+            else:
+                return "Please answer 'yes' or 'no' to confirm booking with the doctor."
+
+        # DOCTOR AVAILABILITY CHECK 
+        doctor_check = self._check_doctor_request(user_input)
+        if doctor_check:
+            return doctor_check
+
+
+
+        # Step 0: Greeting
+        if self.conversation_flow == 0:
+            if self.match(r'(hi|hello|hey|good morning|good evening|start|book|appointment|consult)', user_input):
+                self.conversation_flow = 1
+                return "Hello! I'm here to help you book a doctor's appointment. May I have your full name please?"
+            return "Hello! To start booking an appointment, say something like 'Hello' or 'Book appointment'."
+
+        # Step 1: Get Name
+        elif self.conversation_flow == 1:
+            if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
+                return "Please provide your full name first."
+            if re.fullmatch(r"[A-Za-z\s]{2,40}", user_input):
+                self.appointment_data['name'] = user_input.title()
+                self.conversation_flow = 2
+                return f"Thanks {self.appointment_data['name']}! What is your date of birth? (MM/DD/YYYY)"
+            return "Please provide a valid full name (letters & spaces only)."
+
+        # Step 2: DOB
+        elif self.conversation_flow == 2:
+            if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
+                return "Please provide your date of birth first."
+            dob_pattern = r"^(0[1-9]|1[0-2])/(0[1-9]|[12][0-9]|3[01])/(19|20)\d{2}$"
+            if re.fullmatch(dob_pattern, user_input):
+                self.appointment_data['dob'] = user_input
+                self.conversation_flow = 3
+                return "What is your phone number? (Format: 123-456-7890)"
+            return "Invalid DOB. Please use MM/DD/YYYY format."
+
+        
+        elif self.conversation_flow == 3:
+            if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
+                return "Please provide your phone number first."
+            if re.fullmatch(r"\d{3}-\d{3}-\d{4}", user_input):
+                self.appointment_data['phone'] = user_input
+                self.conversation_flow = 4
+                return "What is the reason for your visit?"
+            return "Please enter phone as 123-456-7890."
+
+        
+        elif self.conversation_flow == 4:
+            if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
+                return "Please tell me the reason so I can assign the correct doctor."
+            if re.fullmatch(r"[A-Za-z0-9\s.,'-]{5,100}", user_input):
+                self.appointment_data['reason'] = user_input
+                self.conversation_flow = 5
+                return ("Which specialist do you need?\n"
+                        "1. General Physician\n2. Cardiologist\n3. Dermatologist\n4. Orthopedist\n"
+                        "Enter number or specialty name.")
+            return "Please describe the reason for your visit (5–100 characters)."
+
+        
+        elif self.conversation_flow == 5:
+            specialty = self._detect_specialty(user_input)
+            if not specialty:
+                return "Invalid specialty. Please choose 1–4 or enter a specialty name."
+            self.appointment_data['specialty'] = specialty.title()
+            doctors = self.doctors[specialty]
+            self.appointment_data['available_doctors'] = doctors
+            doctor_list = "\n".join([f"{i+1}. {doc}" for i, doc in enumerate(doctors)])
+            self.conversation_flow = 6
+            return f"Available {specialty.title()}s:\n{doctor_list}\nSelect a doctor by number or name."
+
+        
+        elif self.conversation_flow == 6:
+            doctors = self.appointment_data['available_doctors']
+            selected = None
+            for i, doc in enumerate(doctors):
+                if self.match(str(i+1), user_input) or self.match(doc.lower().replace("dr. ", ""), user_input.lower()):
+                    selected = doc
+                    break
+            if selected:
+                self.appointment_data['doctor'] = selected
+                self.conversation_flow = 7
+                return self._generate_available_dates(selected)
+            return "Please select a doctor by number or name."
+
+        
+        elif self.conversation_flow == 7:
+            available = self.appointment_data['available_dates']
+            selected = None
+            if re.fullmatch(r"[1-5]", user_input):
+                selected = available[int(user_input)-1]
+            elif user_input in available:
+                selected = user_input
+            if selected:
+                self.appointment_data['date'] = selected
+                self.conversation_flow = 8
+                self.time_slots = ["9:00 AM", "10:30 AM", "1:00 PM", "2:30 PM", "4:00 PM"]
+                times = "\n".join([f"{i+1}. {t}" for i, t in enumerate(self.time_slots)])
+                return f"Available times:\n{times}\nSelect a time by number or enter the time."
+            return "Invalid date. Please choose from the list."
+
+        
+        elif self.conversation_flow == 8:
+            selected = None
+            if re.fullmatch(r"[1-5]", user_input):
+                selected = self.time_slots[int(user_input)-1]
+            elif self.match(r"(am|pm)", user_input):
+                formatted = user_input.upper()
+                if formatted in self.time_slots:
+                    selected = formatted
+            if selected:
+                self.appointment_data['time'] = selected
+                self.conversation_flow = 9
+                return "Would you like SMS reminders? (yes/no)"
+            return "Please pick a valid time."
+
+       
+        elif self.conversation_flow == 9:
+            if self.match(r"(yes|y|sure|ok)", user_input):
+                self.appointment_data['sms_reminders'] = True
+                msg = "SMS reminders enabled."
+            elif self.match(r"(no|n)", user_input):
+                self.appointment_data['sms_reminders'] = False
+                msg = "SMS reminders disabled."
+            else:
+                return "Please reply 'yes' or 'no'."
+            self.conversation_flow = 10
+            summary = self._get_appointment_summary()
+            return f"{msg}\n\nAppointment Summary:\n{summary}\nIs this correct? (yes/no)"
+
+        
+        elif self.conversation_flow == 10:
+            if self.match(r"(yes|y|correct)", user_input):
+                self.conversation_flow = 11
+                return "Your appointment is confirmed. Is there anything else I can help you with?"
+            if self.match(r"(no|n)", user_input):
+                self.conversation_flow = 0
+                self.appointment_data = {}
+                return "Let's start over. Say 'hello' or 'book appointment'."
+            return "Please say 'yes' or 'no'."
+
+       
+        else:
+            if self.match(r"(thanks|thank)", user_input):
+                return "You're welcome! How else may I help?"
+            return "How may I assist you today?"
+
+    
+
+    def _check_doctor_request(self, user_input):
+        """Check if user is asking about a doctor at any stage"""
+        for specialty, doctors in self.doctors.items():
+            for doc in doctors:
+                doc_variants = [doc.lower().replace("dr. ", ""), doc.lower().replace(" ", ""), doc.lower()]
+                for variant in doc_variants:
+                    if variant in user_input.lower():
+                        self.waiting_doctor_confirmation = doc
+                        return f"Yes, {doc} is available. Would you like to book an appointment with {doc}?"
+        return None
+
+    def _detect_specialty(self, text):
+        """Return specialty string if matches number or name"""
+        text = text.lower()
+        mapping = {
+            "1": "general physician",
+            "general": "general physician",
+            "physician": "general physician",
+            "gp": "general physician",
+            "2": "cardiologist",
+            "cardio": "cardiologist",
+            "heart": "cardiologist",
+            "3": "dermatologist",
+            "derma": "dermatologist",
+            "skin": "dermatologist",
+            "4": "orthopedist",
+            "ortho": "orthopedist",
+            "bone": "orthopedist",
+            "joint": "orthopedist"
+        }
+        for key, value in mapping.items():
+            if key in text:
+                return value
+        return None
+
+    def _generate_available_dates(self, doctor_name):
+        today = datetime.datetime.now()
+        available = []
+        for i in range(1, 8):
+            d = today + datetime.timedelta(days=i)
+            if d.weekday() < 5:  
+                available.append(d.strftime("%m/%d/%Y"))
+        self.appointment_data['available_dates'] = available
+        date_list = "\n".join([f"{i+1}. {d}" for i, d in enumerate(available)])
+        return f"Available dates for {doctor_name}:\n{date_list}\nChoose a date."
+
+    def _get_appointment_summary(self):
+        data = self.appointment_data
+        return (f"Name: {data.get('name')}\n"
+                f"DOB: {data.get('dob')}\n"
+                f"Phone: {data.get('phone')}\n"
+                f"Reason: {data.get('reason')}\n"
+                f"Doctor: {data.get('doctor')}\n"
+                f"Date: {data.get('date')}\n"
+                f"Time: {data.get('time')}\n"
+                f"SMS Reminders: {'Yes' if data.get('sms_reminders') else 'No'}")
+
+    def _get_help_response(self):
+        help_msgs = {
+            1: "Please provide your full name.",
+            2: "Enter DOB as MM/DD/YYYY.",
+            3: "Enter phone as 123-456-7890.",
+            4: "Describe the reason for your visit.",
+            5: "Choose a specialty by number or name.",
+            6: "Select a doctor by number or name.",
+            7: "Choose a date from the available options.",
+            8: "Choose a time slot from the available options.",
+            9: "Reply with 'yes' or 'no' for SMS reminders.",
+            10: "Confirm all information (yes/no)."
+        }
+        return help_msgs.get(self.conversation_flow, "Say 'hello' to begin booking.")
+
+
+if __name__ == "__main__":
+    print("\n" + "="*50)
+    print("Healthcare Appointment Bot")
+    print("Type 'quit' anytime to exit")
+    print("="*50)
+
+    bot = HealthcareAppointmentBot()
+    while True:
+        user_input = input("You: ")
+        print("Bot:", bot.process_input(user_input))
