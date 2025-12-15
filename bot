@@ -1,14 +1,11 @@
 import re
 import datetime
-
 class HealthcareAppointmentBot:
     def __init__(self):
         self.conversation_flow = 0
         self.appointment_data = {}
         self.time_slots = []
         self.waiting_doctor_confirmation = None
-
-        # Doctor list
         self.doctors = {
             "general physician": ["Dr. Smith", "Dr. Johnson", "Dr. Brown"],
             "cardiologist": ["Dr. Wilson", "Dr. Davis"],
@@ -23,16 +20,12 @@ class HealthcareAppointmentBot:
     def process_input(self, user_input):
         user_input = user_input.strip()
 
-
-        # Quit
         if self.match(r'(quit|exit|bye|goodbye)', user_input):
             return "Thank you for using our healthcare service! Goodbye!"
 
-        # Help
         if self.match(r'(help|what should i do|how to start|guide)', user_input):
             return self._get_help_response()
 
-        # HANDLE DOCTOR CONFIRMATION
         if self.waiting_doctor_confirmation:
             if self.match(r'^(yes|y|sure|ok)$', user_input):
                 self.appointment_data['doctor'] = self.waiting_doctor_confirmation
@@ -45,22 +38,16 @@ class HealthcareAppointmentBot:
                 return "Okay. You can choose another doctor or specialty. Which specialist do you need?"
             else:
                 return "Please answer 'yes' or 'no' to confirm booking with the doctor."
-
-        # DOCTOR AVAILABILITY CHECK 
         doctor_check = self._check_doctor_request(user_input)
         if doctor_check:
             return doctor_check
 
-
-
-        # Step 0: Greeting
         if self.conversation_flow == 0:
             if self.match(r'(hi|hello|hey|good morning|good evening|start|book|appointment|consult)', user_input):
                 self.conversation_flow = 1
                 return "Hello! I'm here to help you book a doctor's appointment. May I have your full name please?"
             return "Hello! To start booking an appointment, say something like 'Hello' or 'Book appointment'."
 
-        # Step 1: Get Name
         elif self.conversation_flow == 1:
             if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
                 return "Please provide your full name first."
@@ -70,7 +57,6 @@ class HealthcareAppointmentBot:
                 return f"Thanks {self.appointment_data['name']}! What is your date of birth? (MM/DD/YYYY)"
             return "Please provide a valid full name (letters & spaces only)."
 
-        # Step 2: DOB
         elif self.conversation_flow == 2:
             if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
                 return "Please provide your date of birth first."
@@ -80,7 +66,6 @@ class HealthcareAppointmentBot:
                 self.conversation_flow = 3
                 return "What is your phone number? (Format: 123-456-7890)"
             return "Invalid DOB. Please use MM/DD/YYYY format."
-
         
         elif self.conversation_flow == 3:
             if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
@@ -91,7 +76,6 @@ class HealthcareAppointmentBot:
                 return "What is the reason for your visit?"
             return "Please enter phone as 123-456-7890."
 
-        
         elif self.conversation_flow == 4:
             if self.match(r'dr\.?\s*[a-z]+|dr[a-z]+|doctor', user_input):
                 return "Please tell me the reason so I can assign the correct doctor."
@@ -103,7 +87,6 @@ class HealthcareAppointmentBot:
                         "Enter number or specialty name.")
             return "Please describe the reason for your visit (5–100 characters)."
 
-        
         elif self.conversation_flow == 5:
             specialty = self._detect_specialty(user_input)
             if not specialty:
@@ -115,7 +98,6 @@ class HealthcareAppointmentBot:
             self.conversation_flow = 6
             return f"Available {specialty.title()}s:\n{doctor_list}\nSelect a doctor by number or name."
 
-        
         elif self.conversation_flow == 6:
             doctors = self.appointment_data['available_doctors']
             selected = None
@@ -129,7 +111,6 @@ class HealthcareAppointmentBot:
                 return self._generate_available_dates(selected)
             return "Please select a doctor by number or name."
 
-        
         elif self.conversation_flow == 7:
             available = self.appointment_data['available_dates']
             selected = None
@@ -145,7 +126,6 @@ class HealthcareAppointmentBot:
                 return f"Available times:\n{times}\nSelect a time by number or enter the time."
             return "Invalid date. Please choose from the list."
 
-        
         elif self.conversation_flow == 8:
             selected = None
             if re.fullmatch(r"[1-5]", user_input):
@@ -160,7 +140,6 @@ class HealthcareAppointmentBot:
                 return "Would you like SMS reminders? (yes/no)"
             return "Please pick a valid time."
 
-       
         elif self.conversation_flow == 9:
             if self.match(r"(yes|y|sure|ok)", user_input):
                 self.appointment_data['sms_reminders'] = True
@@ -174,7 +153,6 @@ class HealthcareAppointmentBot:
             summary = self._get_appointment_summary()
             return f"{msg}\n\nAppointment Summary:\n{summary}\nIs this correct? (yes/no)"
 
-        
         elif self.conversation_flow == 10:
             if self.match(r"(yes|y|correct)", user_input):
                 self.conversation_flow = 11
@@ -185,13 +163,10 @@ class HealthcareAppointmentBot:
                 return "Let's start over. Say 'hello' or 'book appointment'."
             return "Please say 'yes' or 'no'."
 
-       
         else:
             if self.match(r"(thanks|thank)", user_input):
                 return "You're welcome! How else may I help?"
             return "How may I assist you today?"
-
-    
 
     def _check_doctor_request(self, user_input):
         """Check if user is asking about a doctor at any stage"""
@@ -265,13 +240,11 @@ class HealthcareAppointmentBot:
         }
         return help_msgs.get(self.conversation_flow, "Say 'hello' to begin booking.")
 
-
 if __name__ == "__main__":
     print("\n" + "="*50)
     print("Healthcare Appointment Bot")
     print("Type 'quit' anytime to exit")
     print("="*50)
-
     bot = HealthcareAppointmentBot()
     while True:
         user_input = input("You: ")
