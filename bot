@@ -1,5 +1,6 @@
 import re
 import datetime
+
 class HealthcareAppointmentBot:
     def __init__(self):
         self.conversation_flow = 0
