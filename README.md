@@ -1,7 +1,8 @@
 ###  Healthcare Appointment Booking Chatbot (Python)
 
 A rule-based conversational chatbot built in Python that simulates a healthcare appointment booking system.
-The bot interacts with users via the command line, collects patient details, suggests specialists and doctors, provides available dates & time slots, and confirms appointments with optional SMS reminders.
+The bot interacts with users via the command line, collects patient details, suggests specialists and doctors,
+provides available dates & time slots, and confirms appointments with optional SMS reminders.
 
 ##  Features
 
