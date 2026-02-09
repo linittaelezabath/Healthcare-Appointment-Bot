@@ -57,7 +57,11 @@ The chatbot is implemented using:
 
 healthcare-appointment-bot/
 │
-├── healthcare_bot.py   # Main chatbot implementation
+├── app.py              # Flask backend API
+├── bot.py              # Healthcare chatbot logic
+├── index.html          # Frontend UI
+├── style.css           # Chat UI styling
+├── script.js           # Frontend logic
 ├── README.md           # Project documentation
 
 ## How to Run the Project
