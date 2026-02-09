@@ -241,12 +241,4 @@ class HealthcareAppointmentBot:
         }
         return help_msgs.get(self.conversation_flow, "Say 'hello' to begin booking.")
 
-if __name__ == "__main__":
-    print("\n" + "="*50)
-    print("Healthcare Appointment Bot")
-    print("Type 'quit' anytime to exit")
-    print("="*50)
-    bot = HealthcareAppointmentBot()
-    while True:
-        user_input = input("You: ")
-        print("Bot:", bot.process_input(user_input))
+
