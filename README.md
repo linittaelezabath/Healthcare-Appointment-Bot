@@ -1,8 +1,10 @@
-###  Healthcare Appointment Booking Chatbot (Python)
+###  Healthcare Appointment Booking Chatbot (Python + Flask Web App)
 
 A rule-based conversational chatbot built in Python that simulates a healthcare appointment booking system.
 The bot interacts with users via the command line, collects patient details, suggests specialists and doctors,
-provides available dates & time slots, and confirms appointments with optional SMS reminders.
+provides available dates & time slots, and confirms appointments with optional SMS reminders.The project also includes a web-based chat interface built using HTML, 
+CSS, and JavaScript,with a Flask REST API connecting the frontend and backend chatbot logic.
+
 
 ##  Features
 
@@ -23,6 +25,10 @@ provides available dates & time slots, and confirms appointments with optional S
   -Optional SMS reminder confirmation
   -Help & restart flow at any stage
   -Exit anytime using quit, bye, or exit
+  - Web-based chat interface (browser-based UI)
+  - Real-time interaction using Flask REST API
+  - Modern chat UI built with HTML, CSS, and JavaScript
+
   
   ## How It Works
 
