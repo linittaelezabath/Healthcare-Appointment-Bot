@@ -38,6 +38,10 @@ The chatbot is implemented using:
 -Regular Expressions (regex) for input validation
 -Python dictionaries & lists for managing doctors and appointments
 -Datetime module to generate valid future dates
+- Flask is used to expose the chatbot as a REST API
+- Frontend sends user messages via HTTP POST requests
+- Backend processes input and returns bot responses as JSON
+
 
 ## Technologies Used
 
