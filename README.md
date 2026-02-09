@@ -45,13 +45,13 @@ The chatbot is implemented using:
 
 ## Technologies Used
 
-Python 3
+* Python 3  
+* Flask – backend REST API  
+* HTML, CSS, JavaScript – frontend chat interface  
+* re – input validation using regular expressions  
+* datetime – appointment date generation  
+* flask-cors – for frontend-backend communication
 
-re – for pattern matching & validation
-
-datetime – for date calculations
-
-No external libraries required 
 
 ## Project Structure
 
