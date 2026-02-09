@@ -70,13 +70,28 @@ healthcare-appointment-bot/
 
 ** git clone https://github.com/your-username/healthcare-appointment-bot.git
 
-** Navigate to the project folder
+### Web Version (Recommended)
 
-** cd healthcare-appointment-bot
+1. Install dependencies
+   pip install flask flask-cors
 
-** Run the chatbot
+2. Start the backend server
+   python app.py
 
-** python healthcare_bot.py
+3. Open index.html in a browser
+   (or use Live Server in VS Code)
+
+4. Start chatting by typing "hello"
+
+
+## System Architecture
+
+Frontend (HTML/CSS/JS)
+        ↓ HTTP POST
+Flask REST API
+        ↓
+Healthcare Appointment Chatbot (Python Logic)
+
 
 ## Sample Interaction
 You: Hello
@@ -110,6 +125,11 @@ Doctor names directly (e.g., Dr. Smith) at any point
 
 ** Machine Learning–based chatbot logic
 
+** React-based frontend
+
+** Authentication & user profiles
+
+
 ## Use Case
 
 This project is ideal for:
@@ -118,3 +138,5 @@ This project is ideal for:
 -Chatbot & NLP fundamentals
 -Mini-projects / academic submissions
 -Resume & portfolio projects
+-Full-stack mini project (Frontend + Backend integration)
+
