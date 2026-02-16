@@ -5,7 +5,6 @@ The bot interacts with users via the command line, collects patient details, sug
 provides available dates & time slots, and confirms appointments with optional SMS reminders.The project also includes a web-based chat interface built using HTML, 
 CSS, and JavaScript,with a Flask REST API connecting the frontend and backend chatbot logic.
 
-
 ##  Features
 
 -Interactive command-line chatbot
@@ -113,6 +112,7 @@ quit / exit / bye – to end the conversation
 
 Doctor names directly (e.g., Dr. Smith) at any point
 
+
 ## Future Improvements
 
 ** Web interface (Flask / FastAPI)
@@ -139,4 +139,3 @@ This project is ideal for:
 -Mini-projects / academic submissions
 -Resume & portfolio projects
 -Full-stack mini project (Frontend + Backend integration)
-
