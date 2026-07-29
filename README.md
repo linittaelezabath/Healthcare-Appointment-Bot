@@ -4,6 +4,7 @@ A rule-based conversational chatbot built in Python that simulates a healthcare 
 The bot interacts with users via the command line, collects patient details, suggests specialists and doctors,
 provides available dates & time slots, and confirms appointments with optional SMS reminders.The project also includes a web-based chat interface built using HTML, 
 CSS, and JavaScript,with a Flask REST API connecting the frontend and backend chatbot logic.
+[Home page][images/interface.png]
 
 ##  Features
 
